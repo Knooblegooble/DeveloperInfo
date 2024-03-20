@@ -10,8 +10,8 @@
 </head>
 <body>
 <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.137.0/build/three.module.js';
-    import { FBXLoader } from 'https://unpkg.com/three@0.137.0/examples/jsm/loaders/FBXLoader.js';
+    import * as THREE from '/three.module.js';
+    import { FBXLoader } from '/FBXLoader.js';
 
     let scene, camera, renderer, clock, raycaster, mouse;
 
@@ -41,7 +41,7 @@
 
     function loadFBXObject() {
         const loader = new FBXLoader();
-        loader.load('https://github.com/Knooblegooble/DeveloperInfo/blob/main/model.FBX', function(object) {
+        loader.load('/https://github.com/Knooblegooble/DeveloperInfo/blob/main/model.FBX', function(object) {
             object.traverse(function(child) {
                 if (child.isMesh) {
                     child.material.magFilter = THREE.NearestFilter;
