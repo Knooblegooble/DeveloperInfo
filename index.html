@@ -42,7 +42,7 @@ function onMouseMove(event) {
 
 function loadFBXObject() {
     const loader = new FBXLoader();
-    loader.load('path_to_your_fbx_file.fbx', function(object) {
+    loader.load('model.fbx', function(object) {
         object.traverse(function(child) {
             if (child.isMesh) {
                 // Adjust filters for pixelation
