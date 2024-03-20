@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Pixelated 3D Object with Animation on Hover</title>
     <style>
         body { margin: 0; }
@@ -10,7 +11,7 @@
 <body>
 <script type="module">
 import * as THREE from './three.module.min.js';
-import { FBXLoader } from './FBXLoader.js';
+import { FBXLoader } from './loaders/FBXLoader.js'; // Adjust the path as necessary
 
 let scene, camera, renderer, clock, raycaster, mouse;
 
