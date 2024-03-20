@@ -10,8 +10,9 @@
 </head>
 <body>
 <script type="module">
-import * as THREE from './three.module.min.js';
-import { FBXLoader } from './FBXLoader.js'; // Adjust the path as necessary
+// Import Three.js and FBXLoader from a CDN
+import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import { FBXLoader } from 'https://unpkg.com/three/examples/jsm/loaders/FBXLoader.js';
 
 let scene, camera, renderer, clock, raycaster, mouse;
 
@@ -41,9 +42,10 @@ function onMouseMove(event) {
 
 function loadFBXObject() {
     const loader = new FBXLoader();
-    loader.load('model.fbx', function(object) {
+    loader.load('path_to_your_fbx_file.fbx', function(object) {
         object.traverse(function(child) {
             if (child.isMesh) {
+                // Adjust filters for pixelation
                 child.material.magFilter = THREE.NearestFilter;
                 child.material.minFilter = THREE.LinearFilter;
             }
@@ -54,6 +56,8 @@ function loadFBXObject() {
         object.userData = { mixer, action };
 
         scene.add(object);
+    }, undefined, function(error) {
+        console.error(error);
     });
 }
 
