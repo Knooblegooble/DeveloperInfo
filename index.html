@@ -1,4 +1,12 @@
-<!DOCTYPE html><html data-bs-theme="light" lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"><title>Home - Brand</title><link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="assets/fonts/font-awesome.min.css"><link rel="stylesheet" href="assets/css/styles.min.css"></head><body id="page-top"><a class="menu-toggle rounded" href="#"><i class="fa fa-bars"></i></a><nav class="navbar navbar-expand navbar-light" id="sidebar-wrapper"><div class="container"><button data-bs-toggle="collapse" class="navbar-toggler d-none" data-bs-target="#"></button><div class="collapse navbar-collapse"><ul class="navbar-nav sidebar-nav" id="sidebar-nav"><li class="nav-item sidebar-brand"><a class="nav-link active js-scroll-trigger" href="#page-top">Brand</a></li><li class="nav-item sidebar-nav-item"><a class="nav-link js-scroll-trigger" href="#page-top">Home</a></li><li class="nav-item sidebar-nav-item"><a class="nav-link js-scroll-trigger" href="#about">About</a></li><li class="nav-item sidebar-nav-item"><a class="nav-link js-scroll-trigger" href="#services">Services</a></li><li class="nav-item sidebar-nav-item"><a class="nav-link js-scroll-trigger" href="#portfolio">Portfolio</a></li><li class="nav-item sidebar-nav-item"><a class="nav-link js-scroll-trigger" href="#contact">Contact</a></li></ul></div></div></nav><header class="d-flex masthead"><div class="container text-secondary my-auto text-center"><h1>Kaleb Knoettgen</h1>				<div class="caption v-middle text-center">
+<!DOCTYPE html><html data-bs-theme="light" lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"><title>Home - Brand</title><link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="assets/fonts/font-awesome.min.css"><link rel="stylesheet" href="assets/css/styles.min.css"></head><body id="page-top"><script type="importmap">
+		{
+			"imports": {
+				"three": "../build/three.module.js",
+				"three/addons/": "./jsm/"
+			}
+		}
+</script>
+<div class="container my-auto text-center"><h1 style="font-size: 69px;font-family: Aldrich, sans-serif;">Kaleb Knoettgen</h1>				<div class="caption v-middle text-center">
 					<h1 class="cd-headline clip">
 			            <span class="cd-words-wrapper">
 			              <b class="is-visible">Game Designer.</b>
@@ -9,281 +17,488 @@
 				</div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<h3 class="mb-5"><em>UnderConstruction</em></h3><a class="btn btn-primary btn-xl js-scroll-trigger" role="button" href="#about">Find Out More</a><div class="overlay"></div></div></header><div class="container" id="CDContainer1" style="width: 500px;height: 500px;"><div id="info-1"><br><br></div><div id="container"></div><script type="importmap">
-		{
-			"imports": {
-				"three": "../build/three.module.js",
-				"three/addons/": "./jsm/"
-			}
-		}
-	</script><script type="module">
+<h3 class="mb-5"><em>UnderConstruction</em></h3></div><div class="hstack"><div id="cd1" style="width: 250px;height: 250px;"><script type="module">
 
-		import * as THREE from 'three';
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-		import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-		import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-		import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-		import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+let camera, scene, renderer, composer, clock, mixer;
+let animations; // Store animations here
+let gui, params, model; // Declare 'model' at this scope to ensure it's accessible everywhere
 
-		let camera, scene, renderer, composer, clock, mixer, model;
-		let gui, params;
+const myContainer = 'cd1';
 
-		init();
-		animate();
+init();
+animate();
 
-		function init() {
-			// Assuming the container's ID is 'CDContainer1'
-			const container = document.getElementById('CDContainer1');
-			const containerWidth = container.clientWidth;
-			const containerHeight = container.clientHeight;
-			const aspectRatio = containerWidth / containerHeight;
-			
-
-						
-			scene = new THREE.Scene();
-			scene.background = new THREE.Color(0x151729);
-
-			clock = new THREE.Clock();
-			
-			camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
-			// Adjust camera position so it's not too close or too far
-			camera.position.set(0, 2, 5); // Example: Set position to (x, y, z)
-			// Ensure the camera is looking at the center or a specific point of interest
-			camera.lookAt(scene.position); // Adjust as needed
-			camera.zoom = 8;
-
-
-
-			renderer = new THREE.WebGLRenderer({ antialias: true });
-			renderer.shadowMap.enabled = true;
-			renderer.setSize(containerWidth, containerHeight);
-			container.appendChild(renderer.domElement); // Append to the container
-			
-			// Attach the click event listener to the renderer's DOM element
-			renderer.domElement.addEventListener('click', onMouseClick);
-
-			composer = new EffectComposer(renderer);
-			const renderPixelatedPass = new RenderPixelatedPass(6, scene, camera);
-			composer.addPass(renderPixelatedPass);
-
-			const outputPass = new OutputPass();
-			composer.addPass(outputPass);
-
-			window.addEventListener('resize', onWindowResize);
-
-			// gui
-
-			gui = new GUI();
-			params = { pixelSize: 6, normalEdgeStrength: .3, depthEdgeStrength: .4, pixelAlignedPanning: true };
-			gui.add( params, 'pixelSize' ).min( 1 ).max( 16 ).step( 1 )
-				.onChange( () => {
-
-					renderPixelatedPass.setPixelSize( params.pixelSize );
-
-				} );
-			gui.add( renderPixelatedPass, 'normalEdgeStrength' ).min( 0 ).max( 2 ).step( .05 );
-			gui.add( renderPixelatedPass, 'depthEdgeStrength' ).min( 0 ).max( 1 ).step( .05 );
-			gui.add( params, 'pixelAlignedPanning' );
-
-
-			// lights
-
-			scene.add( new THREE.AmbientLight( 0x757f8e, 3 ) );
-
-			const directionalLight = new THREE.DirectionalLight( 0xfffecd, 1.5 );
-			directionalLight.position.set( 100, 100, 100 );
-			directionalLight.castShadow = true;
-			directionalLight.shadow.mapSize.set( 2048, 2048 );
-			scene.add( directionalLight );
-
-			const spotLight = new THREE.SpotLight( 0xffc100, 10, 10, Math.PI / 16, .02, 2 );
-			spotLight.position.set( 2, 2, 0 );
-			const target = spotLight.target;
-			scene.add( target );
-			target.position.set( 0, 0, 0 );
-			spotLight.castShadow = true;
-			scene.add( spotLight );
-			
-
-		}
+	function init()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
 		
-		const loader = new GLTFLoader().setPath('models/gltf/');
-		loader.load('CDModelFlatAnimated.gltf', async function(gltf) {
+		clock = new THREE.Clock();
+		scene = new THREE.Scene();
 
-			const model = gltf.scene;
-			
-			// Initialize the animation mixer on the loaded model here to avoid the reference error
-			mixer = new THREE.AnimationMixer(model);
-			
-			// Wait until the model can be added to the scene without blocking
-			await renderer.compileAsync(model, camera, scene);
-			scene.add(model);
-			
+		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
+		// Adjust camera position so it's not too close or too far
+		camera.position.set(0, 2, 5); // Example: Set position to (x, y, z)
+		// Ensure the camera is looking at the center or a specific point of interest
+		camera.lookAt(scene.position); // Adjust as needed
+		camera.zoom = 6;
+		
+		params = {
+			pixelSize: 2,
+			normalEdgeStrength: .3,
+			depthEdgeStrength: .4,
+			pixelAlignedPanning: true
+		};
+		
+		renderer = new THREE.WebGLRenderer(
+		{
+			antialias: true,
+			alpha: true // Enable transparency
 		});
 		
+		renderer.shadowMap.enabled = true;
+		renderer.setSize(containerWidth, containerHeight);
+		container.appendChild(renderer.domElement); // Append to the container
+
+		// Attach the click event listener to the renderer's DOM element
+		renderer.domElement.addEventListener('click', onMouseClick);
+
+		composer = new EffectComposer(renderer);
+		const renderPixelatedPass = new RenderPixelatedPass(2, scene, camera);
+		composer.addPass(renderPixelatedPass);
+
+		const outputPass = new OutputPass();
+		composer.addPass(outputPass);
+
+		window.addEventListener('resize', onWindowResize);
+
+
+
+
+		// lights
+
+		scene.add(new THREE.AmbientLight(0x757f8e, 3));
+
+		const directionalLight = new THREE.DirectionalLight(0xfffecd, 1.5);
+		directionalLight.position.set(100, 100, 100);
+		directionalLight.castShadow = true;
+		directionalLight.shadow.mapSize.set(2048, 2048);
+		scene.add(directionalLight);
+
+		const spotLight = new THREE.SpotLight(0xffc100, 10, 10, Math.PI / 16, .02, 2);
+		spotLight.position.set(2, 2, 0);
+		const target = spotLight.target;
+		scene.add(target);
+		target.position.set(0, 0, 0);
+		spotLight.castShadow = true;
+		scene.add(spotLight);
+
+	}
+
+	function onWindowResize()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
+		camera.left = -aspectRatio;
+		camera.right = aspectRatio;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize(containerWidth, containerHeight);
+		composer.setSize(containerWidth, containerHeight);
+	}
+
+	const loader = new GLTFLoader().setPath('models/web/');
+	loader.load('CDAnim1.gltf', async function (gltf)
+	{
+		model = gltf.scene;
+		animations = gltf.animations;
+		mixer = new THREE.AnimationMixer(model);
+
+		await renderer.compileAsync(model, camera, scene);
+		scene.add(model);
+	});
+
+	function onMouseClick(event)
+	{
+		// Calculate the bounding box of the model
+		const modelBoundingBox = new THREE.Box3().setFromObject(model);		
+		// Store the bounding box with the model for later use
+		model.userData.boundingBox = modelBoundingBox;
+		// Create a helper if you want to visualize the bounding box (optional)
+		//const boxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
+		//scene.add(boxHelper);
 		
-		function onMouseClick(event) {
-			event.preventDefault();
-			
-			const raycaster = new THREE.Raycaster();
-			const mouse = new THREE.Vector2();
-			const arrowDirection = new THREE.Vector3();
-			const arrowColor = 0xff0000;
-			const arrowLength = 5;
-			const arrowHelper = new THREE.ArrowHelper(arrowDirection, new THREE.Vector3(0, 0, 0), arrowLength, arrowColor);
-			//scene.add(arrowHelper);
+		event.preventDefault();
 
-			const bounds = renderer.domElement.getBoundingClientRect(); // Get the bounding rectangle of the renderer element
+		const raycaster = new THREE.Raycaster();
+		const mouse = new THREE.Vector2();
 
-			// Calculate mouse position in normalized device coordinates (-1 to +1) for both components, relative to the container
-			mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-			mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+		const bounds = renderer.domElement.getBoundingClientRect();
 
-			// Update the picking ray with the camera and mouse position
-			raycaster.setFromCamera(mouse, camera);
+		// Calculate mouse position in normalized device coordinates
+		mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+		mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
 
-			// Perform the raycasting
-			const intersects = raycaster.intersectObjects(scene.children, true);
+		raycaster.setFromCamera(mouse, camera);
 
-			//if (intersects.length > 0) {
-				const object = intersects[0].object;
-				// Check if the intersected object is the 3D model or part of it
-				//if (object.parent === model || object === model) {
-					// Assuming `mixer` and the animation clip are properly initialized
-					const action = mixer.clipAction(model.animations[0]);
-					action.reset(); // Ensure the animation starts from the beginning
-					action.setLoop(THREE.LoopOnce);
-					action.clampWhenFinished = true;
-					action.play();
-					scene.add(arrowHelper);
-				//}
-			//}
-					//scene.add(arrowHelper);
-			// Update the ArrowHelper to visualize the ray
-			arrowHelper.position.copy(raycaster.ray.origin);
-			arrowHelper.setDirection(raycaster.ray.direction);
+		// Retrieve the bounding box from the model
+		const boundingBox = model.userData.boundingBox;
+
+		// Check for intersection with the bounding box
+		if (raycaster.ray.intersectBox(boundingBox, new THREE.Vector3()))
+		{
+			// Intersection with the bounding box detected
+			const action = mixer.clipAction(animations[0]);
+			action.reset();
+
+			action.setEffectiveTimeScale(1);
+
+			// Start the animation at its end
+			//action.time = action.getClip().duration;
+
+			action.setLoop(THREE.LoopOnce);
+			action.clampWhenFinished = true;
+			action.play();
 		}
+	}
 
-		
-		
+	function animate()
+	{
 
-		
-		
-		function onWindowResize() {
-			const container = document.getElementById('CDContainer1');
-			const containerWidth = container.clientWidth;
-			const containerHeight = container.clientHeight;
-			const aspectRatio = containerWidth / containerHeight;
-			camera.left = - aspectRatio;
+		requestAnimationFrame(animate);
+
+		// Ensure mixer is defined before attempting to update it
+		if (mixer) mixer.update(clock.getDelta());
+
+		const t = clock.getElapsedTime();
+
+		const rendererSize = renderer.getSize(new THREE.Vector2());
+		const aspectRatio = rendererSize.x / rendererSize.y;
+		if (params['pixelAlignedPanning'])
+		{
+
+			pixelAlignFrustum(camera, aspectRatio, Math.floor(rendererSize.x / params['pixelSize']),
+				Math.floor(rendererSize.y / params['pixelSize']));
+
+		}
+		else if (camera.left != -aspectRatio || camera.top != 1.0)
+		{
+
+			// Reset the Camera Frustum if it has been modified
+			camera.left = -aspectRatio;
 			camera.right = aspectRatio;
-			camera.updateProjectionMatrix();
-
-			renderer.setSize(containerWidth, containerHeight);
-			composer.setSize(containerWidth, containerHeight);
-		}
-
-		function animate() {
-
-			requestAnimationFrame( animate );
-			
-			// Ensure mixer is defined before attempting to update it
-			if (mixer) mixer.update(clock.getDelta());
-
-			const t = clock.getElapsedTime();
-
-			const rendererSize = renderer.getSize( new THREE.Vector2() );
-			const aspectRatio = rendererSize.x / rendererSize.y;
-			if ( params[ 'pixelAlignedPanning' ] ) {
-
-				pixelAlignFrustum( camera, aspectRatio, Math.floor( rendererSize.x / params[ 'pixelSize' ] ),
-					Math.floor( rendererSize.y / params[ 'pixelSize' ] ) );
-
-			} else if ( camera.left != - aspectRatio || camera.top != 1.0 ) {
-
-				// Reset the Camera Frustum if it has been modified
-				camera.left = - aspectRatio;
-				camera.right = aspectRatio;
-				camera.top = 1.0;
-				camera.bottom = - 1.0;
-				camera.updateProjectionMatrix();
-
-			}
-
-			composer.render();
-
-		}
-
-		// Helper functions
-
-		function pixelTexture( texture ) {
-
-			texture.minFilter = THREE.NearestFilter;
-			texture.magFilter = THREE.NearestFilter;
-			texture.generateMipmaps = false;
-			texture.wrapS = THREE.RepeatWrapping;
-			texture.wrapT = THREE.RepeatWrapping;
-			texture.colorSpace = THREE.SRGBColorSpace;
-			return texture;
-
-		}
-
-		function easeInOutCubic( x ) {
-
-			return x ** 2 * 3 - x ** 3 * 2;
-
-		}
-
-		function linearStep( x, edge0, edge1 ) {
-
-			const w = edge1 - edge0;
-			const m = 1 / w;
-			const y0 = - m * edge0;
-			return THREE.MathUtils.clamp( y0 + m * x, 0, 1 );
-
-		}
-
-		function stopGoEased( x, downtime, period ) {
-
-			const cycle = ( x / period ) | 0;
-			const tween = x - cycle * period;
-			const linStep = easeInOutCubic( linearStep( tween, downtime, period ) );
-			return cycle + linStep;
-
-		}
-
-		function pixelAlignFrustum( camera, aspectRatio, pixelsPerScreenWidth, pixelsPerScreenHeight ) {
-
-			// 0. Get Pixel Grid Units
-			const worldScreenWidth = ( ( camera.right - camera.left ) / camera.zoom );
-			const worldScreenHeight = ( ( camera.top - camera.bottom ) / camera.zoom );
-			const pixelWidth = worldScreenWidth / pixelsPerScreenWidth;
-			const pixelHeight = worldScreenHeight / pixelsPerScreenHeight;
-
-			// 1. Project the current camera position along its local rotation bases
-			const camPos = new THREE.Vector3(); camera.getWorldPosition( camPos );
-			const camRot = new THREE.Quaternion(); camera.getWorldQuaternion( camRot );
-			const camRight = new THREE.Vector3( 1.0, 0.0, 0.0 ).applyQuaternion( camRot );
-			const camUp = new THREE.Vector3( 0.0, 1.0, 0.0 ).applyQuaternion( camRot );
-			const camPosRight = camPos.dot( camRight );
-			const camPosUp = camPos.dot( camUp );
-
-			// 2. Find how far along its position is along these bases in pixel units
-			const camPosRightPx = camPosRight / pixelWidth;
-			const camPosUpPx = camPosUp / pixelHeight;
-
-			// 3. Find the fractional pixel units and convert to world units
-			const fractX = camPosRightPx - Math.round( camPosRightPx );
-			const fractY = camPosUpPx - Math.round( camPosUpPx );
-
-			// 4. Add fractional world units to the left/right top/bottom to align with the pixel grid
-			camera.left = - aspectRatio - ( fractX * pixelWidth );
-			camera.right = aspectRatio - ( fractX * pixelWidth );
-			camera.top = 1.0 - ( fractY * pixelHeight );
-			camera.bottom = - 1.0 - ( fractY * pixelHeight );
+			camera.top = 1.0;
+			camera.bottom = -1.0;
 			camera.updateProjectionMatrix();
 
 		}
 
-	</script></div><footer class="footer text-center"><div class="container"><p class="text-muted mb-0 small">Copyright &nbsp;© Brand 2024</p></div><a class="js-scroll-trigger scroll-to-top rounded" href="#page-top"><i class="fa fa-angle-up"></i></a></footer><script src="assets/bootstrap/js/bootstrap.min.js"></script><script src="assets/js/script.min.js"></script></body></html>
+		composer.render();
+
+	}
+
+	// Pixel Effect
+
+	function pixelTexture(texture)
+	{
+
+		texture.minFilter = THREE.NearestFilter;
+		texture.magFilter = THREE.NearestFilter;
+		texture.generateMipmaps = false;
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.colorSpace = THREE.SRGBColorSpace;
+		return texture;
+
+	}
+
+	function pixelAlignFrustum(camera, aspectRatio, pixelsPerScreenWidth, pixelsPerScreenHeight)
+	{
+
+		// 0. Get Pixel Grid Units
+		const worldScreenWidth = ((camera.right - camera.left) / camera.zoom);
+		const worldScreenHeight = ((camera.top - camera.bottom) / camera.zoom);
+		const pixelWidth = worldScreenWidth / pixelsPerScreenWidth;
+		const pixelHeight = worldScreenHeight / pixelsPerScreenHeight;
+
+		// 1. Project the current camera position along its local rotation bases
+		const camPos = new THREE.Vector3();
+		camera.getWorldPosition(camPos);
+		const camRot = new THREE.Quaternion();
+		camera.getWorldQuaternion(camRot);
+		const camRight = new THREE.Vector3(1.0, 0.0, 0.0).applyQuaternion(camRot);
+		const camUp = new THREE.Vector3(0.0, 1.0, 0.0).applyQuaternion(camRot);
+		const camPosRight = camPos.dot(camRight);
+		const camPosUp = camPos.dot(camUp);
+
+		// 2. Find how far along its position is along these bases in pixel units
+		const camPosRightPx = camPosRight / pixelWidth;
+		const camPosUpPx = camPosUp / pixelHeight;
+
+		// 3. Find the fractional pixel units and convert to world units
+		const fractX = camPosRightPx - Math.round(camPosRightPx);
+		const fractY = camPosUpPx - Math.round(camPosUpPx);
+
+		// 4. Add fractional world units to the left/right top/bottom to align with the pixel grid
+		camera.left = -aspectRatio - (fractX * pixelWidth);
+		camera.right = aspectRatio - (fractX * pixelWidth);
+		camera.top = 1.0 - (fractY * pixelHeight);
+		camera.bottom = -1.0 - (fractY * pixelHeight);
+		camera.updateProjectionMatrix();
+
+	}
+
+</script></div><div id="cd2" style="width: 250px;height: 250px;"><script type="module">
+
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+let camera, scene, renderer, composer, clock, mixer;
+let animations; // Store animations here
+let gui, params, model; // Declare 'model' at this scope to ensure it's accessible everywhere
+
+const myContainer = 'cd2';
+
+init();
+animate();
+
+	function init()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
+		
+		clock = new THREE.Clock();
+		scene = new THREE.Scene();
+
+		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
+		// Adjust camera position so it's not too close or too far
+		camera.position.set(0, 2, 5); // Example: Set position to (x, y, z)
+		// Ensure the camera is looking at the center or a specific point of interest
+		camera.lookAt(scene.position); // Adjust as needed
+		camera.zoom = 6;
+		
+		params = {
+			pixelSize: 2,
+			normalEdgeStrength: .3,
+			depthEdgeStrength: .4,
+			pixelAlignedPanning: true
+		};
+		
+		renderer = new THREE.WebGLRenderer(
+		{
+			antialias: true,
+			alpha: true // Enable transparency
+		});
+		
+		renderer.shadowMap.enabled = true;
+		renderer.setSize(containerWidth, containerHeight);
+		container.appendChild(renderer.domElement); // Append to the container
+
+		// Attach the click event listener to the renderer's DOM element
+		renderer.domElement.addEventListener('click', onMouseClick);
+
+		composer = new EffectComposer(renderer);
+		const renderPixelatedPass = new RenderPixelatedPass(2, scene, camera);
+		composer.addPass(renderPixelatedPass);
+
+		const outputPass = new OutputPass();
+		composer.addPass(outputPass);
+
+		window.addEventListener('resize', onWindowResize);
+
+
+
+
+		// lights
+
+		scene.add(new THREE.AmbientLight(0x757f8e, 3));
+
+		const directionalLight = new THREE.DirectionalLight(0xfffecd, 1.5);
+		directionalLight.position.set(100, 100, 100);
+		directionalLight.castShadow = true;
+		directionalLight.shadow.mapSize.set(2048, 2048);
+		scene.add(directionalLight);
+
+		const spotLight = new THREE.SpotLight(0xffc100, 10, 10, Math.PI / 16, .02, 2);
+		spotLight.position.set(2, 2, 0);
+		const target = spotLight.target;
+		scene.add(target);
+		target.position.set(0, 0, 0);
+		spotLight.castShadow = true;
+		scene.add(spotLight);
+
+	}
+
+	function onWindowResize()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
+		camera.left = -aspectRatio;
+		camera.right = aspectRatio;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize(containerWidth, containerHeight);
+		composer.setSize(containerWidth, containerHeight);
+	}
+
+	const loader = new GLTFLoader().setPath('models/web/');
+	loader.load('CDAnim1.gltf', async function (gltf)
+	{
+		model = gltf.scene;
+		animations = gltf.animations;
+		mixer = new THREE.AnimationMixer(model);
+
+		await renderer.compileAsync(model, camera, scene);
+		scene.add(model);
+	});
+
+	function onMouseClick(event)
+	{
+		// Calculate the bounding box of the model
+		const modelBoundingBox = new THREE.Box3().setFromObject(model);		
+		// Store the bounding box with the model for later use
+		model.userData.boundingBox = modelBoundingBox;
+		// Create a helper if you want to visualize the bounding box (optional)
+		//const boxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
+		//scene.add(boxHelper);
+		
+		event.preventDefault();
+
+		const raycaster = new THREE.Raycaster();
+		const mouse = new THREE.Vector2();
+
+		const bounds = renderer.domElement.getBoundingClientRect();
+
+		// Calculate mouse position in normalized device coordinates
+		mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+		mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+
+		raycaster.setFromCamera(mouse, camera);
+
+		// Retrieve the bounding box from the model
+		const boundingBox = model.userData.boundingBox;
+
+		// Check for intersection with the bounding box
+		if (raycaster.ray.intersectBox(boundingBox, new THREE.Vector3()))
+		{
+			// Intersection with the bounding box detected
+			const action = mixer.clipAction(animations[0]);
+			action.reset();
+
+			action.setEffectiveTimeScale(1);
+
+			// Start the animation at its end
+			//action.time = action.getClip().duration;
+
+			action.setLoop(THREE.LoopOnce);
+			action.clampWhenFinished = true;
+			action.play();
+		}
+	}
+
+	function animate()
+	{
+
+		requestAnimationFrame(animate);
+
+		// Ensure mixer is defined before attempting to update it
+		if (mixer) mixer.update(clock.getDelta());
+
+		const t = clock.getElapsedTime();
+
+		const rendererSize = renderer.getSize(new THREE.Vector2());
+		const aspectRatio = rendererSize.x / rendererSize.y;
+		if (params['pixelAlignedPanning'])
+		{
+
+			pixelAlignFrustum(camera, aspectRatio, Math.floor(rendererSize.x / params['pixelSize']),
+				Math.floor(rendererSize.y / params['pixelSize']));
+
+		}
+		else if (camera.left != -aspectRatio || camera.top != 1.0)
+		{
+
+			// Reset the Camera Frustum if it has been modified
+			camera.left = -aspectRatio;
+			camera.right = aspectRatio;
+			camera.top = 1.0;
+			camera.bottom = -1.0;
+			camera.updateProjectionMatrix();
+
+		}
+
+		composer.render();
+
+	}
+
+	// Pixel Effect
+
+	function pixelTexture(texture)
+	{
+
+		texture.minFilter = THREE.NearestFilter;
+		texture.magFilter = THREE.NearestFilter;
+		texture.generateMipmaps = false;
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.colorSpace = THREE.SRGBColorSpace;
+		return texture;
+
+	}
+
+	function pixelAlignFrustum(camera, aspectRatio, pixelsPerScreenWidth, pixelsPerScreenHeight)
+	{
+
+		// 0. Get Pixel Grid Units
+		const worldScreenWidth = ((camera.right - camera.left) / camera.zoom);
+		const worldScreenHeight = ((camera.top - camera.bottom) / camera.zoom);
+		const pixelWidth = worldScreenWidth / pixelsPerScreenWidth;
+		const pixelHeight = worldScreenHeight / pixelsPerScreenHeight;
+
+		// 1. Project the current camera position along its local rotation bases
+		const camPos = new THREE.Vector3();
+		camera.getWorldPosition(camPos);
+		const camRot = new THREE.Quaternion();
+		camera.getWorldQuaternion(camRot);
+		const camRight = new THREE.Vector3(1.0, 0.0, 0.0).applyQuaternion(camRot);
+		const camUp = new THREE.Vector3(0.0, 1.0, 0.0).applyQuaternion(camRot);
+		const camPosRight = camPos.dot(camRight);
+		const camPosUp = camPos.dot(camUp);
+
+		// 2. Find how far along its position is along these bases in pixel units
+		const camPosRightPx = camPosRight / pixelWidth;
+		const camPosUpPx = camPosUp / pixelHeight;
+
+		// 3. Find the fractional pixel units and convert to world units
+		const fractX = camPosRightPx - Math.round(camPosRightPx);
+		const fractY = camPosUpPx - Math.round(camPosUpPx);
+
+		// 4. Add fractional world units to the left/right top/bottom to align with the pixel grid
+		camera.left = -aspectRatio - (fractX * pixelWidth);
+		camera.right = aspectRatio - (fractX * pixelWidth);
+		camera.top = 1.0 - (fractY * pixelHeight);
+		camera.bottom = -1.0 - (fractY * pixelHeight);
+		camera.updateProjectionMatrix();
+
+	}
+
+</script></div></div><footer class="footer text-center"><div class="container"><p class="text-muted mb-0 small">Copyright &nbsp;© Kaleb Knoettgen 2024</p></div><a class="js-scroll-trigger scroll-to-top rounded" href="#page-top"><i class="fa fa-angle-up"></i></a></footer><script src="assets/bootstrap/js/bootstrap.min.js"></script><script src="assets/js/script.min.js"></script></body></html>
