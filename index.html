@@ -17,41 +17,33 @@
 				</div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<h3 class="mb-5"><em>UnderConstruction</em></h3></div><div class="hstack"><div id="cd1" style="width: 250px;height: 250px;"><script type="module">
+<h3 class="mb-5"><em>Under Construction</em></h3></div><div class="hstack d-lg-flex justify-content-lg-center align-items-lg-center"><div id="cd1" style="width: 250px;height: 250px;">	<script type="module">
 
-import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+	import * as THREE from 'three';
+	import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+	import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+	import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-let camera, scene, renderer, composer, clock, mixer;
-let animations; // Store animations here
-let gui, params, model; // Declare 'model' at this scope to ensure it's accessible everywhere
+	let camera, scene, renderer, composer, clock, mixer;
+	let animations; // Store animations here
+	let params, model;
+	let modelBoundingBox, boundingBoxHelper;
 
-const myContainer = 'cd1';
+	const myContainer = 'cd1';
 
-init();
-animate();
+	init();
+	animate();
 
 	function init()
 	{
+		// Global variables
 		const container = document.getElementById(myContainer);
 		const containerWidth = container.clientWidth;
 		const containerHeight = container.clientHeight;
 		const aspectRatio = containerWidth / containerHeight;
-		
 		clock = new THREE.Clock();
 		scene = new THREE.Scene();
-
-		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
-		// Adjust camera position so it's not too close or too far
-		camera.position.set(0, 2, 5); // Example: Set position to (x, y, z)
-		// Ensure the camera is looking at the center or a specific point of interest
-		camera.lookAt(scene.position); // Adjust as needed
-		camera.zoom = 6;
-		
 		params = {
 			pixelSize: 2,
 			normalEdgeStrength: .3,
@@ -59,35 +51,31 @@ animate();
 			pixelAlignedPanning: true
 		};
 		
+		// Camera setup
+		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
+		camera.position.set(0, 1, 5);
+		camera.lookAt(scene.position);
+		camera.zoom = 7;
+		
+		// Renderer setup
 		renderer = new THREE.WebGLRenderer(
 		{
 			antialias: true,
 			alpha: true // Enable transparency
 		});
-		
 		renderer.shadowMap.enabled = true;
 		renderer.setSize(containerWidth, containerHeight);
 		container.appendChild(renderer.domElement); // Append to the container
-
-		// Attach the click event listener to the renderer's DOM element
-		renderer.domElement.addEventListener('click', onMouseClick);
-
 		composer = new EffectComposer(renderer);
 		const renderPixelatedPass = new RenderPixelatedPass(2, scene, camera);
 		composer.addPass(renderPixelatedPass);
-
 		const outputPass = new OutputPass();
 		composer.addPass(outputPass);
-
-		window.addEventListener('resize', onWindowResize);
-
 
 
 
 		// lights
-
 		scene.add(new THREE.AmbientLight(0x757f8e, 3));
-
 		const directionalLight = new THREE.DirectionalLight(0xfffecd, 1.5);
 		directionalLight.position.set(100, 100, 100);
 		directionalLight.castShadow = true;
@@ -101,75 +89,80 @@ animate();
 		target.position.set(0, 0, 0);
 		spotLight.castShadow = true;
 		scene.add(spotLight);
-
-	}
-
-	function onWindowResize()
-	{
-		const container = document.getElementById(myContainer);
-		const containerWidth = container.clientWidth;
-		const containerHeight = container.clientHeight;
-		const aspectRatio = containerWidth / containerHeight;
-		camera.left = -aspectRatio;
-		camera.right = aspectRatio;
-		camera.updateProjectionMatrix();
-
-		renderer.setSize(containerWidth, containerHeight);
-		composer.setSize(containerWidth, containerHeight);
-	}
-
-	const loader = new GLTFLoader().setPath('models/web/');
-	loader.load('CDAnim1.gltf', async function (gltf)
-	{
-		model = gltf.scene;
-		animations = gltf.animations;
-		mixer = new THREE.AnimationMixer(model);
-
-		await renderer.compileAsync(model, camera, scene);
-		scene.add(model);
-	});
-
-	function onMouseClick(event)
-	{
-		// Calculate the bounding box of the model
-		const modelBoundingBox = new THREE.Box3().setFromObject(model);		
-		// Store the bounding box with the model for later use
-		model.userData.boundingBox = modelBoundingBox;
-		// Create a helper if you want to visualize the bounding box (optional)
-		//const boxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
-		//scene.add(boxHelper);
 		
+
+		// Handle Models
+		const loader = new GLTFLoader().setPath('models/web/');
+		loader.load('CDAnim1.gltf', async function(gltf) {
+			model = gltf.scene;
+			animations = gltf.animations;
+			mixer = new THREE.AnimationMixer(model);
+
+			await renderer.compileAsync(model, camera, scene);
+			scene.add(model);
+
+			// Initialize the bounding box and its helper
+			modelBoundingBox = new THREE.Box3().setFromObject(model);
+			boundingBoxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
+			//scene.add(boundingBoxHelper); // Optional: Add the bounding box helper for visualization
+
+
+		});
+		
+		// Events to listen to
+		window.addEventListener('resize', onWindowResize);
+		container.addEventListener('mousemove', onMouseMove);
+		container.addEventListener('mouseleave' , onMouseMove);
+	}
+
+
+
+	function onMouseMove(event) {
 		event.preventDefault();
 
 		const raycaster = new THREE.Raycaster();
 		const mouse = new THREE.Vector2();
-
 		const bounds = renderer.domElement.getBoundingClientRect();
 
-		// Calculate mouse position in normalized device coordinates
 		mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
 		mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
-
 		raycaster.setFromCamera(mouse, camera);
 
-		// Retrieve the bounding box from the model
-		const boundingBox = model.userData.boundingBox;
+		// Update the bounding box to the current state of the model.
+		const currentBoundingBox = new THREE.Box3().setFromObject(model);
 
-		// Check for intersection with the bounding box
-		if (raycaster.ray.intersectBox(boundingBox, new THREE.Vector3()))
-		{
-			// Intersection with the bounding box detected
+		if (raycaster.ray.intersectBox(currentBoundingBox, new THREE.Vector3())) {
+			document.body.style.cursor = 'pointer'; // Change cursor to indicate interactive element
+			if (!model.userData.isHovered) {
+				model.userData.isHovered = true; // Flag to indicate hover state
+				playAnimation(1); // Play animation forwards only if it wasn't already hovering
+			}
+		} else {
+			document.body.style.cursor = 'default'; // Change cursor back to default
+			if (model.userData.isHovered) {
+				model.userData.isHovered = false; // Reset hover state flag
+				playAnimation(-1); // Play animation in reverse since mouse has left
+			}
+		}
+	}
+
+	function playAnimation(direction) {
+		// Function to control animation playback
+		if (mixer && animations.length > 0) {
 			const action = mixer.clipAction(animations[0]);
-			action.reset();
-
-			action.setEffectiveTimeScale(1);
-
-			// Start the animation at its end
-			//action.time = action.getClip().duration;
-
-			action.setLoop(THREE.LoopOnce);
-			action.clampWhenFinished = true;
-			action.play();
+			action.setEffectiveTimeScale(direction); // Direction controls the playback direction
+			if(direction === 1 && !action.isRunning()) {
+				action.setLoop(THREE.LoopOnce);
+				action.clampWhenFinished = true;
+				action.enabled = true;
+				action.play();
+			} else if(direction === -1) {
+				// For reverse, set the action to start from the end if not already playing
+				action.enabled = true;
+				action.paused = false;
+				action.clampWhenFinished = false;
+				action.play();
+			}
 		}
 	}
 
@@ -178,11 +171,19 @@ animate();
 
 		requestAnimationFrame(animate);
 
+
 		// Ensure mixer is defined before attempting to update it
 		if (mixer) mixer.update(clock.getDelta());
 
 		const t = clock.getElapsedTime();
+		
+		
+		// Update the bounding box and helper in every frame
+		if (model && modelBoundingBox) {
+			modelBoundingBox.setFromObject(model);
+		}
 
+		// Pixel Effect
 		const rendererSize = renderer.getSize(new THREE.Vector2());
 		const aspectRatio = rendererSize.x / rendererSize.y;
 		if (params['pixelAlignedPanning'])
@@ -207,8 +208,25 @@ animate();
 		composer.render();
 
 	}
+	
+	// Helper
+	
+	function onWindowResize()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
+		camera.left = -aspectRatio;
+		camera.right = aspectRatio;
+		camera.updateProjectionMatrix();
 
-	// Pixel Effect
+		renderer.setSize(containerWidth, containerHeight);
+		composer.setSize(containerWidth, containerHeight);
+	}
+	
+	
+
 
 	function pixelTexture(texture)
 	{
@@ -259,41 +277,33 @@ animate();
 
 	}
 
-</script></div><div id="cd2" style="width: 250px;height: 250px;"><script type="module">
+</script></div><div id="cd2" style="width: 250px;height: 250px;">	<script type="module">
 
-import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+	import * as THREE from 'three';
+	import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+	import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+	import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-let camera, scene, renderer, composer, clock, mixer;
-let animations; // Store animations here
-let gui, params, model; // Declare 'model' at this scope to ensure it's accessible everywhere
+	let camera, scene, renderer, composer, clock, mixer;
+	let animations; // Store animations here
+	let params, model;
+	let modelBoundingBox, boundingBoxHelper;
 
-const myContainer = 'cd2';
+	const myContainer = 'cd2';
 
-init();
-animate();
+	init();
+	animate();
 
 	function init()
 	{
+		// Global variables
 		const container = document.getElementById(myContainer);
 		const containerWidth = container.clientWidth;
 		const containerHeight = container.clientHeight;
 		const aspectRatio = containerWidth / containerHeight;
-		
 		clock = new THREE.Clock();
 		scene = new THREE.Scene();
-
-		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
-		// Adjust camera position so it's not too close or too far
-		camera.position.set(0, 2, 5); // Example: Set position to (x, y, z)
-		// Ensure the camera is looking at the center or a specific point of interest
-		camera.lookAt(scene.position); // Adjust as needed
-		camera.zoom = 6;
-		
 		params = {
 			pixelSize: 2,
 			normalEdgeStrength: .3,
@@ -301,35 +311,31 @@ animate();
 			pixelAlignedPanning: true
 		};
 		
+		// Camera setup
+		camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 10);
+		camera.position.set(0, 1, 5);
+		camera.lookAt(scene.position);
+		camera.zoom = 7;
+		
+		// Renderer setup
 		renderer = new THREE.WebGLRenderer(
 		{
 			antialias: true,
 			alpha: true // Enable transparency
 		});
-		
 		renderer.shadowMap.enabled = true;
 		renderer.setSize(containerWidth, containerHeight);
 		container.appendChild(renderer.domElement); // Append to the container
-
-		// Attach the click event listener to the renderer's DOM element
-		renderer.domElement.addEventListener('click', onMouseClick);
-
 		composer = new EffectComposer(renderer);
 		const renderPixelatedPass = new RenderPixelatedPass(2, scene, camera);
 		composer.addPass(renderPixelatedPass);
-
 		const outputPass = new OutputPass();
 		composer.addPass(outputPass);
-
-		window.addEventListener('resize', onWindowResize);
-
 
 
 
 		// lights
-
 		scene.add(new THREE.AmbientLight(0x757f8e, 3));
-
 		const directionalLight = new THREE.DirectionalLight(0xfffecd, 1.5);
 		directionalLight.position.set(100, 100, 100);
 		directionalLight.castShadow = true;
@@ -343,75 +349,80 @@ animate();
 		target.position.set(0, 0, 0);
 		spotLight.castShadow = true;
 		scene.add(spotLight);
-
-	}
-
-	function onWindowResize()
-	{
-		const container = document.getElementById(myContainer);
-		const containerWidth = container.clientWidth;
-		const containerHeight = container.clientHeight;
-		const aspectRatio = containerWidth / containerHeight;
-		camera.left = -aspectRatio;
-		camera.right = aspectRatio;
-		camera.updateProjectionMatrix();
-
-		renderer.setSize(containerWidth, containerHeight);
-		composer.setSize(containerWidth, containerHeight);
-	}
-
-	const loader = new GLTFLoader().setPath('models/web/');
-	loader.load('CDAnim1.gltf', async function (gltf)
-	{
-		model = gltf.scene;
-		animations = gltf.animations;
-		mixer = new THREE.AnimationMixer(model);
-
-		await renderer.compileAsync(model, camera, scene);
-		scene.add(model);
-	});
-
-	function onMouseClick(event)
-	{
-		// Calculate the bounding box of the model
-		const modelBoundingBox = new THREE.Box3().setFromObject(model);		
-		// Store the bounding box with the model for later use
-		model.userData.boundingBox = modelBoundingBox;
-		// Create a helper if you want to visualize the bounding box (optional)
-		//const boxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
-		//scene.add(boxHelper);
 		
+
+		// Handle Models
+		const loader = new GLTFLoader().setPath('models/web/');
+		loader.load('CDAnim1.gltf', async function(gltf) {
+			model = gltf.scene;
+			animations = gltf.animations;
+			mixer = new THREE.AnimationMixer(model);
+
+			await renderer.compileAsync(model, camera, scene);
+			scene.add(model);
+
+			// Initialize the bounding box and its helper
+			modelBoundingBox = new THREE.Box3().setFromObject(model);
+			boundingBoxHelper = new THREE.Box3Helper(modelBoundingBox, 0xff0000);
+			//scene.add(boundingBoxHelper); // Optional: Add the bounding box helper for visualization
+
+
+		});
+		
+		// Events to listen to
+		window.addEventListener('resize', onWindowResize);
+		container.addEventListener('mousemove', onMouseMove);
+		container.addEventListener('mouseleave' , onMouseMove);
+	}
+
+
+
+	function onMouseMove(event) {
 		event.preventDefault();
 
 		const raycaster = new THREE.Raycaster();
 		const mouse = new THREE.Vector2();
-
 		const bounds = renderer.domElement.getBoundingClientRect();
 
-		// Calculate mouse position in normalized device coordinates
 		mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
 		mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
-
 		raycaster.setFromCamera(mouse, camera);
 
-		// Retrieve the bounding box from the model
-		const boundingBox = model.userData.boundingBox;
+		// Update the bounding box to the current state of the model.
+		const currentBoundingBox = new THREE.Box3().setFromObject(model);
 
-		// Check for intersection with the bounding box
-		if (raycaster.ray.intersectBox(boundingBox, new THREE.Vector3()))
-		{
-			// Intersection with the bounding box detected
+		if (raycaster.ray.intersectBox(currentBoundingBox, new THREE.Vector3())) {
+			document.body.style.cursor = 'pointer'; // Change cursor to indicate interactive element
+			if (!model.userData.isHovered) {
+				model.userData.isHovered = true; // Flag to indicate hover state
+				playAnimation(1); // Play animation forwards only if it wasn't already hovering
+			}
+		} else {
+			document.body.style.cursor = 'default'; // Change cursor back to default
+			if (model.userData.isHovered) {
+				model.userData.isHovered = false; // Reset hover state flag
+				playAnimation(-1); // Play animation in reverse since mouse has left
+			}
+		}
+	}
+
+	function playAnimation(direction) {
+		// Function to control animation playback
+		if (mixer && animations.length > 0) {
 			const action = mixer.clipAction(animations[0]);
-			action.reset();
-
-			action.setEffectiveTimeScale(1);
-
-			// Start the animation at its end
-			//action.time = action.getClip().duration;
-
-			action.setLoop(THREE.LoopOnce);
-			action.clampWhenFinished = true;
-			action.play();
+			action.setEffectiveTimeScale(direction); // Direction controls the playback direction
+			if(direction === 1 && !action.isRunning()) {
+				action.setLoop(THREE.LoopOnce);
+				action.clampWhenFinished = true;
+				action.enabled = true;
+				action.play();
+			} else if(direction === -1) {
+				// For reverse, set the action to start from the end if not already playing
+				action.enabled = true;
+				action.paused = false;
+				action.clampWhenFinished = false;
+				action.play();
+			}
 		}
 	}
 
@@ -420,11 +431,19 @@ animate();
 
 		requestAnimationFrame(animate);
 
+
 		// Ensure mixer is defined before attempting to update it
 		if (mixer) mixer.update(clock.getDelta());
 
 		const t = clock.getElapsedTime();
+		
+		
+		// Update the bounding box and helper in every frame
+		if (model && modelBoundingBox) {
+			modelBoundingBox.setFromObject(model);
+		}
 
+		// Pixel Effect
 		const rendererSize = renderer.getSize(new THREE.Vector2());
 		const aspectRatio = rendererSize.x / rendererSize.y;
 		if (params['pixelAlignedPanning'])
@@ -449,8 +468,25 @@ animate();
 		composer.render();
 
 	}
+	
+	// Helper
+	
+	function onWindowResize()
+	{
+		const container = document.getElementById(myContainer);
+		const containerWidth = container.clientWidth;
+		const containerHeight = container.clientHeight;
+		const aspectRatio = containerWidth / containerHeight;
+		camera.left = -aspectRatio;
+		camera.right = aspectRatio;
+		camera.updateProjectionMatrix();
 
-	// Pixel Effect
+		renderer.setSize(containerWidth, containerHeight);
+		composer.setSize(containerWidth, containerHeight);
+	}
+	
+	
+
 
 	function pixelTexture(texture)
 	{
